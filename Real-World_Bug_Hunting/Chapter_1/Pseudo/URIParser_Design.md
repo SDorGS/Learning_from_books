@@ -43,7 +43,7 @@ class URIParser:
 
 ---
 
-## **4. Scheme Parsing (Common to All)**
+## **3. Scheme Parsing (Common to All)**
 
 ```text
 function _parse_scheme():
@@ -59,7 +59,7 @@ function _parse_scheme():
 
 ---
 
-## **5. Handler Factory**
+## **4. Handler Factory**
 
 ```text
 class URIHandlerFactory:
@@ -83,7 +83,7 @@ class URIHandlerFactory:
 
 ---
 
-## **6. Abstract Handler Interface**
+## **5. Abstract Handler Interface**
 
 ```text
 class AbstractURIHandler:
@@ -93,7 +93,7 @@ class AbstractURIHandler:
 
 ---
 
-## **7. Hierarchical Handler Template**
+## **6. Hierarchical Handler Template**
 
 ### **(Used for HTTP, HTTPS, FTP, FILE, WS, WSS, etc.)**
 
@@ -132,7 +132,7 @@ class HierarchicalHandler(AbstractURIHandler):
 
 ---
 
-### **7a. Authority Parsing**
+### **6a. Authority Parsing**
 
 ```text
 function _parse_authority(input, index, builder, RFC3986_MODE):
@@ -176,7 +176,7 @@ function _parse_authority(input, index, builder, RFC3986_MODE):
 
 ---
 
-### **7b. Path Parsing**
+### **6b. Path Parsing**
 
 ```text
 function _parse_path(input, index, builder):
@@ -213,7 +213,7 @@ function _parse_fragment(input, index, builder):
 
 ---
 
-## **8. Opaque Handler**
+## **7. Opaque Handler**
 
 ### **(Used for URNs, mailto, tel, news, etc.)**
 
@@ -227,7 +227,7 @@ class OpaqueHandler(AbstractURIHandler):
 
 ---
 
-## **9. Utility Module**
+## **8. Utility Module**
 
 ```text
 class URIUtilities:
@@ -268,7 +268,7 @@ class URIUtilities:
 
 ---
 
-## **10. URI Builder Pattern**
+## **9. URI Builder Pattern**
 
 ```text
 class URIBuilder:
@@ -306,7 +306,7 @@ class URIBuilder:
 
 ---
 
-## **11. URI Object**
+## **10. URI Object**
 
 ```text
 class URIObject:
