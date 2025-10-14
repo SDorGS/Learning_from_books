@@ -4,7 +4,7 @@
 
 from flask import Flask, jsonify, request
 from datetime import datetime
-from URI_Parser import URIParser  # your own interpreter
+from URI_Parser import URIParser
 from functools import wraps
 
 app = Flask(__name__)
@@ -261,3 +261,4 @@ async function parseUrl(){
 
 if __name__ == "__main__":
     app.run(debug=True)
+
