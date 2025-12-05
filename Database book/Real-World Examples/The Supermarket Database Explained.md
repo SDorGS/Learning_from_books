@@ -1,31 +1,26 @@
 # The Supermarket Database
 
+## Basic Foundations
 
-# LOGIC 1 — Foundational Axioms (the axioms that ground everything)
+### The Basic Foundation of Uniqueness (Barcode/UPC)
 
+> 1. Every distinct physical product has a unique identifier (UPC), and the system must be able to identify a product record unambiguously by that identifier.
 
-## Axiom 1: Uniqueness (Barcode/UPC)
-
-**Claim (informal):** Every distinct physical product has a unique identifier (UPC), and the system must be able to identify a product record unambiguously by that identifier.
-
-### I will unpack that into primitives:
-
+where;
 1. **Unique identifier domain**: There exists a domain `UPC` (string of digits) and a bijection between *product instances* in the product master and UPC values.
 2. **Uniqueness invariant**: ∀ two `Products` rows p1, p2: if `p1.UPC = p2.UPC` then `p1` and `p2` are the same row. (No two product rows share the same UPC.)
 3. **Referential identity**: Any referencing table (Inventory, Transactions) that refers to a UPC must refer to an existing product (foreign-key relationship).
 
-### Database translation (how we enforce it in SQL)
+**Database translation (how we enforce it in SQL)**
 
 * `Products.UPC` is declared `PRIMARY KEY` or at least `UNIQUE NOT NULL`.
 * `Inventory.UPC` and `Transactions.UPC` use `FOREIGN KEY (...) REFERENCES Products(UPC)`.
 
-I note: **Uniqueness is not enough** if data is corrupted outside transactions; we need DB-level constraints and backups.
+> I note: **Uniqueness is not enough** if data is corrupted outside transactions; we need DB-level constraints and backups.
 
-## Axiom 2: Inventory Integrity
+### The Basic Foundation of Inventory Integrity
 
-**Claim (informal):** For each unit sold, the recorded stock count must decrease by exactly one, with no failure or lag that results in an inconsistent state.
-
-### Unpacking:
+> For each unit sold, the recorded stock count must decrease by exactly one, with no failure or lag that results in an inconsistent state.
 
 1. **Atomic decrement property**: A single completed sale operation must cause a corresponding decrement of exactly 1 in `Inventory.StockQuantity` for that UPC and a corresponding entry in `Transactions`.
 2. **No double-count / no lost decrement**: Concurrency or crashes must not cause the system to apply the decrement 0 times (lost update) or >1 times (double decrement for single sale).
@@ -37,24 +32,14 @@ I note: **Uniqueness is not enough** if data is corrupted outside transactions; 
 * Wrap the inventory decrement and transaction insert in a **single ACID transaction**.
 * Use a **CHECK** or application logic to prevent `StockQuantity < 0` (if business rule forbids negative).
 
----
-
-# LOGIC 3 — Perspectival Easing: Transaction Flow (how things look at the point-of-sale and how the system eases between axioms and applied rules)
-
-You told me Logic 3 comes *before* Logic 2 in the narrative: user sees Logic 3 (the scan, immediate feedback), Logic 3 observes the constraints of Logic 1 and eases transition to Logic 2. I’ll adopt that ordering:
+## Perspectival Easing: Transaction Flow (how things look at the point-of-sale and how the system eases between axioms and applied rules)
 
 1. **User action (scan barcode)**: The cashier scans a UPC. From the cashier’s perspective, they expect instant price retrieval, and near-instant success/failure feedback for the sale. They don’t see the internal DB steps.
 2. **POS system (client)**: Issues a read (SELECT) to fetch product details; prepares to initiate the sale.
 3. **DB transaction begins**: POS opens a transaction; executes read, update, insert inside it.
 4. **User receives success/failure**: the POS commits or aborts and shows the result.
 
-I will show the full low-level sequence (messages, DB locks, logs) — that’s the real “easing” between axioms and constraints.
-
----
-
-# From theory to SQL — full schema with every reasonable constraint
-
-I will present the schema I’ll use for the rest of the explanation. I deliberately include constraints (PK, FK, UNIQUE, NOT NULL, CHECK) and helpful indexes.
+# From theory to SQL — Schema
 
 ```sql
 -- PRODUCTS: master list; UPC is authoritative
@@ -100,7 +85,7 @@ CREATE TABLE Transactions (
 
 # The atomic sale: SQL and exact engine-level steps
 
-I will now unblackbox the “sale” operation. I’ll show:
+the “sale” operation
 
 1. Application-level call (pseudocode / stored-procedure usage).
 2. Exact SQL inside a transaction.
@@ -193,8 +178,6 @@ DELIMITER ;
 * `SELECT ... FOR UPDATE` acquires an exclusive lock (or necessary MVCC protection) on the Inventory row to prevent concurrent updates that would cause lost updates. This ensures the subsequent `UPDATE` is logically consistent in presence of concurrent transactions.
 * `SELECT ... FOR SHARE` (or `LOCK IN SHARE MODE`) for `Products` prevents concurrent schema-level changes to product data while still allowing reads.
 
----
-
 ## C – Engine-level internal trace — every step, precisely
 
 I will now follow a **single execution** of `Execute_Sale('737628064502', 1, 17)`. I’ll name the transaction `T1`, and I’ll also show a concurrent transaction `T2` that tries to sell the same UPC at the same time to illustrate isolation and locking.
@@ -268,7 +251,7 @@ I will now follow a **single execution** of `Execute_Sale('737628064502', 1, 17)
 
 ---
 
-# ACID, revisited in machine terms (I will expand each property and map to the steps above)
+# ACID, revisited in machine terms
 
 ## Atomicity (A)
 
@@ -339,11 +322,10 @@ I will explicitly trace the read-modify-write sequence to show the correct outco
 * Phantom: inserts match a predicate that a repeatable read earlier didn't see. Inventory with unique UPC typically prevents phantoms for same UPC, but range locks or secondary indices can matter if using `SELECT ... WHERE StockQuantity > 0`.
 * **Solution**: Use `FOR UPDATE` for rows you will examine and update; use appropriate isolation level for reads.
 
----
 
-# Edge cases, failures and recovery — exhaustive list, and how we handle them
+# Edge cases, failures and recovery
 
-I will list every realistic failure mode and state how the system behaves and how to mitigate.
+Every realistic failure mode and state how the system behaves and how to mitigate.
 
 ## 1. POS crashes after payment accepted but before DB call
 
