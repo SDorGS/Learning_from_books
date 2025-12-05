@@ -1,12 +1,6 @@
 # **SQL Data Types and SQL Constraints**
 
-## **1. Introduction**
-
-This document presents a rigorous, professionally structured, and deeply detailed exploration of **SQL Data Types** and **SQL Constraints**, covering their **properties**, **categories**, **principles**, **theoretical foundations**, **historical context**, **patterns**, **logical frameworks**, **practical relevance**, **expert perspectives**, and **real-world applications**.
-
-It is designed for an aspiring programming expert who values precision, systematic organization, language flow, clarity, and conceptual depth.
-
-# **2. SQL Data Types**
+# **1. SQL Data Types**
 
 SQL Data Types define the *fundamental nature* of data stored in a database column. They determine:
 
