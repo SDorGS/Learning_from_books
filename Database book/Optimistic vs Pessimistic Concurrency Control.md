@@ -1,6 +1,6 @@
 # Logic 1: The Foundation — The Mechanics of the Pipe
 
-Before we can argue about *how* to lock data, I must understand the machinery that allows me to touch the data at all. I see lines of code like `new SqlConnection` and `BeginTransaction`. These are not magic spells; they are heavy, mechanical operations.
+Consider *how* to lock data.
 
 ### The Connection (`SqlConnection`)
 > `var conn = new SqlConnection(cs);`
